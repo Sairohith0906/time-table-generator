@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 1. DASHBOARD PAGE
+// 📊 DASHBOARD PAGE
 class DashboardContent extends StatefulWidget {
   final Function(String, Color) onAction;
   const DashboardContent({required this.onAction, super.key});
@@ -30,11 +30,6 @@ class DashboardContentState extends State<DashboardContent> {
       'title': 'Rooms/Labs Available',
       'value': '42',
       'icon': Icons.house_rounded,
-    },
-    {
-      'title': 'Timetables Generated',
-      'value': '8',
-      'icon': Icons.calendar_today_rounded,
     },
   ];
 
@@ -74,6 +69,8 @@ class DashboardContentState extends State<DashboardContent> {
   List<Map<String, dynamic>> _filteredAssignments = [];
   final TextEditingController _searchController = TextEditingController();
 
+  final Color cardBgColor = const Color(0xFF1F2633);
+
   @override
   void initState() {
     super.initState();
@@ -112,62 +109,71 @@ class DashboardContentState extends State<DashboardContent> {
         return {
           'color': Colors.redAccent,
           'icon': Icons.pending_actions_rounded,
-          'bgColor': Color(0xFF2A2F3A),
         };
       case 'In Progress':
-        return {
-          'color': Colors.orangeAccent,
-          'icon': Icons.cached_rounded,
-          'bgColor': Color(0xFF2A2F3A),
-        };
+        return {'color': Colors.orangeAccent, 'icon': Icons.cached_rounded};
       case 'Completed':
         return {
           'color': Colors.greenAccent,
           'icon': Icons.check_circle_rounded,
-          'bgColor': Color(0xFF2A2F3A),
         };
       default:
-        return {
-          'color': Colors.grey,
-          'icon': Icons.info_outline_rounded,
-          'bgColor': Color(0xFF2A2F3A),
-        };
+        return {'color': Colors.grey, 'icon': Icons.info_outline_rounded};
     }
   }
 
-  final Color cardBgColor = const Color(0xFF1F2633);
-
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final bool isMobile = width < 700;
+
+    // 🔠 Responsive font sizes
+    final double mainTitleSize = isMobile ? 22 : 30;
+    final double sectionTitleSize = isMobile ? 18 : 22;
+    final double smallText = isMobile ? 12 : 14;
+    final double valueText = isMobile ? 18 : 22;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // --- Dashboard Title ---
           Text(
             'Dashboard Overview',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,
+              fontSize: mainTitleSize,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
 
           // --- Overview Stats Grid ---
           LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = (constraints.maxWidth / 250).floor().clamp(
-                1,
-                4,
-              );
+              int crossAxisCount;
+              double aspectRatio;
+
+              if (isMobile) {
+                crossAxisCount = 2;
+                aspectRatio = 5 / 3;
+              } else {
+                crossAxisCount = (constraints.maxWidth / 260).floor().clamp(
+                  2,
+                  4,
+                );
+                aspectRatio = 2.2;
+              }
+
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  childAspectRatio: 2.0,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: aspectRatio,
                 ),
                 itemCount: _stats.length,
                 itemBuilder: (context, index) {
@@ -175,42 +181,50 @@ class DashboardContentState extends State<DashboardContent> {
                   return Card(
                     color: cardBgColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       onTap: () => widget.onAction(
                         'Tapped on ${stat['title']}',
                         Colors.indigo,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            // --- Title ---
+                            Text(
+                              stat['title'],
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: smallText,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+
+                            // --- Value + Icon ---
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  stat['title'],
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
                                   stat['value'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 22,
+                                    fontSize: valueText,
                                     color: Colors.white,
                                   ),
                                 ),
+                                Icon(
+                                  stat['icon'],
+                                  size: isMobile ? 26 : 32,
+                                  color: const Color(0xFF0A74DA),
+                                ),
                               ],
-                            ),
-                            Icon(
-                              stat['icon'],
-                              size: 40,
-                              color: const Color(0xFF0A74DA),
                             ),
                           ],
                         ),
@@ -222,33 +236,44 @@ class DashboardContentState extends State<DashboardContent> {
             },
           ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 30),
+
+          // --- Assignments Header ---
           Text(
             'Pending Assignments & Tasks',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,
+              fontSize: sectionTitleSize,
             ),
           ),
           const SizedBox(height: 10),
 
           // --- Search Bar ---
           Padding(
-            padding: const EdgeInsets.only(bottom: 20.0),
+            padding: const EdgeInsets.only(bottom: 18.0),
             child: TextFormField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: smallText + 1),
               decoration: InputDecoration(
                 labelText: 'Search Assignments...',
-                labelStyle: const TextStyle(color: Colors.white70),
-                prefixIcon: const Icon(
+                labelStyle: TextStyle(
+                  color: Colors.white70,
+                  fontSize: smallText + 1,
+                ),
+                prefixIcon: Icon(
                   Icons.search_rounded,
                   color: Colors.white70,
+                  size: isMobile ? 20 : 22,
                 ),
                 filled: true,
                 fillColor: const Color(0xFF2A2F3A),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -267,9 +292,9 @@ class DashboardContentState extends State<DashboardContent> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  childAspectRatio: 1.8,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 1.9,
                 ),
                 itemCount: _filteredAssignments.length,
                 itemBuilder: (context, index) {
@@ -277,18 +302,18 @@ class DashboardContentState extends State<DashboardContent> {
                   final visuals = _getStatusVisuals(assignment['status']);
 
                   return Card(
-                    color: visuals['bgColor'],
+                    color: const Color(0xFF2A2F3A),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       onTap: () => widget.onAction(
                         'Viewing: ${assignment['title']}',
                         Colors.indigo,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(12.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,28 +327,42 @@ class DashboardContentState extends State<DashboardContent> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: visuals['color'],
+                                      fontSize: smallText + 1,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Icon(visuals['icon'], color: visuals['color']),
+                                Icon(
+                                  visuals['icon'],
+                                  color: visuals['color'],
+                                  size: isMobile ? 18 : 22,
+                                ),
                               ],
                             ),
                             Text(
                               'Due: ${assignment['dueDate']}',
-                              style: const TextStyle(color: Colors.white70),
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: smallText,
+                              ),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Chip(
-                                  label: Text(assignment['status']),
+                                  label: Text(
+                                    assignment['status'],
+                                    style: TextStyle(
+                                      fontSize: smallText,
+                                      fontWeight: FontWeight.bold,
+                                      color: visuals['color'],
+                                    ),
+                                  ),
                                   backgroundColor: visuals['color'].withOpacity(
                                     0.15,
                                   ),
-                                  labelStyle: TextStyle(
-                                    color: visuals['color'],
-                                    fontWeight: FontWeight.bold,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
                                   ),
                                 ),
                                 Row(
@@ -332,6 +371,7 @@ class DashboardContentState extends State<DashboardContent> {
                                       icon: Icon(
                                         Icons.edit_rounded,
                                         color: const Color(0xFF0A74DA),
+                                        size: isMobile ? 18 : 20,
                                       ),
                                       onPressed: () => widget.onAction(
                                         'Editing: ${assignment['title']}',
@@ -342,6 +382,7 @@ class DashboardContentState extends State<DashboardContent> {
                                       icon: Icon(
                                         Icons.task_alt_rounded,
                                         color: Colors.greenAccent,
+                                        size: isMobile ? 18 : 20,
                                       ),
                                       onPressed: () => widget.onAction(
                                         'Marking complete: ${assignment['title']}',
@@ -363,8 +404,8 @@ class DashboardContentState extends State<DashboardContent> {
           ),
 
           if (_filteredAssignments.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(32.0),
+            const Padding(
+              padding: EdgeInsets.all(32.0),
               child: Center(
                 child: Text(
                   'No assignments match your search.',

@@ -20,8 +20,8 @@ enum PageType {
   settings,
 }
 
-class TimetableDashboardApp extends StatelessWidget {
-  const TimetableDashboardApp({super.key});
+class AdminDashboard extends StatelessWidget {
+  const AdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +29,8 @@ class TimetableDashboardApp extends StatelessWidget {
       title: 'NEP 2020 Smart Timetabler',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Color(0xFF12161A),
-        primaryColor: Color(0xFF0A74DA),
+        scaffoldBackgroundColor: const Color(0xFF12161A),
+        primaryColor: const Color(0xFF0A74DA),
         textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Roboto'),
       ),
       home: const DashboardLayout(),
@@ -89,83 +89,163 @@ class _DashboardLayoutState extends State<DashboardLayout> {
     },
   ];
 
-  // Sidebar
-  Widget _buildSidebar(bool isPermanent) {
-    return Container(
-      color: Color(0xFF15191D),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  /// Drawer (for mobile/tablet view)
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: const Color(0xFF15191D),
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
-          const SizedBox(height: 24),
-          _LogoBlock(),
-          const SizedBox(height: 24),
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color(0xFF0A74DA)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.school, color: Color(0xFF0A74DA), size: 30),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'NAVYUG UNIVERSITY',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  'NEP 2020 Timetabler',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
           ..._navItems.map((item) {
             final isSelected = item['page'] == _currentPage;
-            return GestureDetector(
+            return ListTile(
+              leading: Icon(
+                item['icon'],
+                color: isSelected ? Colors.blueAccent : Colors.white70,
+              ),
+              title: Text(
+                item['title'],
+                style: TextStyle(
+                  color: isSelected ? Colors.blueAccent : Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              selected: isSelected,
+              selectedTileColor: Colors.blue.withOpacity(0.1),
               onTap: () {
                 setState(() {
                   _currentPage = item['page'];
-                  if (!isPermanent) Navigator.pop(context);
                 });
+                Navigator.pop(context); // Close drawer after tap
               },
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isSelected ? Color(0xFF0A74DA) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      item['icon'],
-                      size: 18,
-                      color: isSelected ? Colors.white : Colors.white70,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      item['title'],
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white60,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             );
           }).toList(),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                children: const [
-                  Icon(Icons.help_outline, size: 18, color: Colors.white70),
-                  SizedBox(width: 12),
-                  Text(
-                    'Help & Support',
-                    style: TextStyle(color: Colors.white60, fontSize: 14),
-                  ),
-                ],
-              ),
+          const Divider(color: Colors.white24, height: 1),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Colors.white70),
+            title: const Text(
+              'Help & Support',
+              style: TextStyle(color: Colors.white),
             ),
+            onTap: () {},
           ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // Top Bar
+  /// Sidebar (for large screen view)
+  Widget _buildSidebar() {
+    return Container(
+      width: 240,
+      color: const Color(0xFF15191D),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color(0xFF0A74DA)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.school, color: Color(0xFF0A74DA), size: 30),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'NAVYUG UNIVERSITY',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  'NEP 2020 Timetabler',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              children: _navItems.map((item) {
+                final isSelected = item['page'] == _currentPage;
+                return ListTile(
+                  leading: Icon(
+                    item['icon'],
+                    color: isSelected ? Colors.blueAccent : Colors.white70,
+                  ),
+                  title: Text(
+                    item['title'],
+                    style: TextStyle(
+                      color: isSelected ? Colors.blueAccent : Colors.white,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedTileColor: Colors.blue.withOpacity(0.1),
+                  onTap: () {
+                    setState(() {
+                      _currentPage = item['page'];
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 1),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Colors.white70),
+            title: const Text(
+              'Help & Support',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {},
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(bool isMobile) {
     String title =
         _navItems.firstWhere((item) => item['page'] == _currentPage)['title']
             as String;
     return AppBar(
-      backgroundColor: Color(0xFF1F2633),
+      backgroundColor: const Color(0xFF1F2633),
       title: Text(
         title,
         style: const TextStyle(
@@ -174,18 +254,15 @@ class _DashboardLayoutState extends State<DashboardLayout> {
         ),
       ),
       elevation: 2,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.white70),
-          onPressed: () {},
-        ),
-        const SizedBox(width: 16),
-        const CircleAvatar(child: Icon(Icons.person)),
-        const SizedBox(width: 8),
-        const Center(
+      actions: const [
+        Icon(Icons.notifications_none, color: Colors.white70),
+        SizedBox(width: 16),
+        CircleAvatar(child: Icon(Icons.person)),
+        SizedBox(width: 8),
+        Center(
           child: Text("Priya Sharma", style: TextStyle(color: Colors.white70)),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
       ],
     );
   }
@@ -209,7 +286,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       case PageType.settings:
         return SettingsPage(onAction: _showSnackBar);
       default:
-        return Center(child: Text('Page not found for $_currentPage'));
+        return const Center(child: Text('Page not found'));
     }
   }
 
@@ -237,7 +314,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             appBar: _buildAppBar(isMobile),
             body: Row(
               children: [
-                Container(width: 240, child: _buildSidebar(true)),
+                _buildSidebar(),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -250,49 +327,14 @@ class _DashboardLayoutState extends State<DashboardLayout> {
         } else {
           return Scaffold(
             appBar: _buildAppBar(isMobile),
-            drawer: Drawer(child: _buildSidebar(false)),
-            body: SingleChildScrollView(
+            drawer: _buildDrawer(),
+            body: Padding(
               padding: const EdgeInsets.all(16.0),
               child: _getPageWidget(),
             ),
           );
         }
       },
-    );
-  }
-}
-
-// ---------- Shared Widgets ----------
-class _LogoBlock extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 44,
-          width: 44,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF10B3A6), Color(0xFF0A74DA)],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-            child: Icon(Icons.school, color: Colors.white, size: 22),
-          ),
-        ),
-        const SizedBox(width: 12),
-        const Flexible(
-          child: Text(
-            'NAVYUG\nUNIVERSITY',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white70,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

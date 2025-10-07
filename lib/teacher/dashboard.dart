@@ -4,132 +4,95 @@ import 'dart:math' as math;
 class DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          'My Course-wise Attendance',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'My Course-wise Attendance',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              _AttendanceGrid(),
+              const SizedBox(height: 36),
+
+              // MODIFICATION: Replaced Column with Row and used MainAxisAlignment.spaceAround
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  _NotesCard(), // Now controls its own width
+                  _DeadlinesCard(), // Fixed width of 250
+                ],
+              ),
+            ],
+          ),
         ),
-        SizedBox(height: 12),
-        _AttendanceRow(),
-        SizedBox(height: 36),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(flex: 1, child: _NotesCard()),
-            SizedBox(width: 18),
-            Expanded(flex: 1, child: _DeadlinesCard()),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _AttendanceRow extends StatelessWidget {
+class _AttendanceGrid extends StatelessWidget {
   final items = const [
     {'title': 'Foundations & Education', 'percent': 0.72, 'label': '72%'},
     {'title': 'Curriculum & Pedagogy', 'percent': 0.80, 'label': '80%'},
     {'title': 'Indian Education', 'percent': 0.90, 'label': '90%'},
-    {'title': 'Indian Education', 'percent': 0.60, 'label': '60%'},
+    {'title': 'Digital Skills', 'percent': 0.60, 'label': '60%'},
   ];
+
+  const _AttendanceGrid({super.key});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 36) / 4;
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: items
-                .map(
-                  (it) => Container(
-                    width: cardWidth,
-                    height: 200,
-                    margin: EdgeInsets.only(right: 12),
-                    child: _AttendanceCard(
-                      title: it['title'] as String,
-                      percent: it['percent'] as double,
-                      label: it['label'] as String,
-                    ),
-                  ),
-                )
-                .toList(),
+        int crossAxisCount;
+
+        // Adaptive grid: 2 for small, 3 for medium, 4 for wide screens
+        if (constraints.maxWidth < 700) {
+          crossAxisCount = 2;
+        } else if (constraints.maxWidth < 1050) {
+          crossAxisCount = 3;
+        } else {
+          crossAxisCount = 4;
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            childAspectRatio: 1.05,
           ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final it = items[index];
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 220, // prevents stretching on large phones
+                  maxHeight: 180,
+                  minWidth: 160,
+                  minHeight: 160,
+                ),
+                child: _AttendanceCard(
+                  title: it['title'] as String,
+                  percent: it['percent'] as double,
+                  label: it['label'] as String,
+                ),
+              ),
+            );
+          },
         );
       },
-    );
-  }
-}
-
-class _NotesCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        height: 200,
-        child: Stack(
-          children: [
-            Positioned(
-              left: 12,
-              top: 12,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                // decoration: BoxDecoration(
-                //   color: Color(0xFF151719),
-                //   borderRadius: BorderRadius.circular(8),
-                //   // boxShadow: [
-                //   //   BoxShadow(
-                //   //     color: Colors.black54,
-                //   //     blurRadius: 14,
-                //   //     offset: Offset(0, 8),
-                //   //   ),
-                //   // ],
-                // ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16),
-              width: 300,
-              decoration: BoxDecoration(
-                color: Color(0xFFFFE082),
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Notes / Reminders',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    '• Remember to buy textbook Education',
-                    style: TextStyle(fontSize: 13, color: Colors.black),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    '• Submit project idea by Friday',
-                    style: TextStyle(fontSize: 13, color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -138,6 +101,7 @@ class _AttendanceCard extends StatelessWidget {
   final String title;
   final double percent;
   final String label;
+
   const _AttendanceCard({
     required this.title,
     required this.percent,
@@ -147,52 +111,52 @@ class _AttendanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
           colors: [Color(0xFF0E2A43), Color(0xFF0F2F3F)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black54,
+            color: Colors.black38,
             blurRadius: 12,
-            offset: Offset(0, 8),
+            offset: Offset(0, 6),
           ),
         ],
       ),
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                _CircularPercent(value: percent, label: label),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
+          Row(
+            children: [
+              _CircularPercent(value: percent, label: label),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Colors.white,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Education',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                    ],
-                  ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Education',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           Container(
             height: 6,
@@ -205,7 +169,7 @@ class _AttendanceCard extends StatelessWidget {
               widthFactor: percent,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFF0A74DA),
+                  color: const Color(0xFF0A74DA),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -225,27 +189,23 @@ class _CircularPercent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 64,
-      height: 64,
+      width: 56,
+      height: 56,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Transform.rotate(
             angle: -math.pi / 2,
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: CircularProgressIndicator(
-                value: value,
-                strokeWidth: 6,
-                backgroundColor: Colors.white12,
-                valueColor: AlwaysStoppedAnimation(Color(0xFF3DE7C9)),
-              ),
+            child: CircularProgressIndicator(
+              value: value,
+              strokeWidth: 5,
+              backgroundColor: Colors.white12,
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF3DE7C9)),
             ),
           ),
           Text(
             (value * 100).round().toString() + '%',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -253,48 +213,104 @@ class _CircularPercent extends StatelessWidget {
   }
 }
 
-class _DeadlinesCard extends StatelessWidget {
+class _NotesCard extends StatelessWidget {
+  const _NotesCard({super.key});
+
   @override
   Widget build(BuildContext context) {
+    // MODIFICATION: Set a fixed width for the Notes card (e.g., 400) or let it size
+    // naturally with the ConstrainedBox. We use Center to respect the original constraints.
     return Center(
-      child: Container(
-        height: 200,
-        width: 350,
-        padding: EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Color(0xFF6E57D6),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black45,
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 210),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFE082),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Upcoming Deadlines',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                'Notes / Reminders',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  fontSize: 15,
+                ),
               ),
               SizedBox(height: 12),
-              _DeadlineItem(
-                title: 'Assignment 2: Due Oct 10',
-                subtitle: '(Curriculum & Pedagogy)',
+              Text(
+                '• Remember to buy textbook Education',
+                style: TextStyle(fontSize: 13, color: Colors.black),
               ),
-              _DeadlineItem(
-                title: 'Mid-Term Exam: Oct 18',
-                subtitle: '(Indian Education)',
-              ),
-              _DeadlineItem(
-                title: 'Project Proposal: Due 25',
-                subtitle: '(Digital Skills)',
+              SizedBox(height: 6),
+              Text(
+                '• Submit project idea by Friday',
+                style: TextStyle(fontSize: 13, color: Colors.black),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeadlinesCard extends StatelessWidget {
+  const _DeadlinesCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // MODIFICATION: Fixed width to 250 using SizedBox, respecting the max height.
+    return SizedBox(
+      width: 250,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 250),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6E57D6),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black45,
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Upcoming Deadlines',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                ),
+                SizedBox(height: 12),
+                _DeadlineItem(
+                  title: 'Assignment 2: Due Oct 10',
+                  subtitle: '(Curriculum & Pedagogy)',
+                ),
+                _DeadlineItem(
+                  title: 'Mid-Term Exam: Oct 18',
+                  subtitle: '(Indian Education)',
+                ),
+                _DeadlineItem(
+                  title: 'Project Proposal: Due Oct 25',
+                  subtitle: '(Digital Skills)',
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -306,25 +322,29 @@ class _DeadlineItem extends StatelessWidget {
   final String title;
   final String subtitle;
   const _DeadlineItem({required this.title, required this.subtitle});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          Icon(Icons.circle, size: 8, color: Colors.white70),
-          SizedBox(width: 8),
+          const Icon(Icons.circle, size: 8, color: Colors.white70),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ],
             ),
